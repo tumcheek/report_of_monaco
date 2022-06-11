@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block title %}Drivers{% endblock %}
+{% block content %}
+{% for line_report in drivers_report %}
+    <p>{{line_report[1]}} | <a href=?driver_id={{line_report[0]}}>{{ line_report[0] }}</a></p>
+{% endfor %}
+{% endblock %}

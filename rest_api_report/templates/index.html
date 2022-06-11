@@ -1,0 +1,7 @@
+{% extends "layout.html" %}
+{% block title %}Report{% endblock %}
+{% block content %}
+    {% for line_report in report %}
+    <p>{{ line_report }}</p>
+    {% endfor %}
+{% endblock %}
