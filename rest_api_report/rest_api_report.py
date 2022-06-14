@@ -6,6 +6,9 @@ from pathlib import Path
 from flasgger import Swagger
 from dicttoxml import dicttoxml
 import json
+from peewee import *
+from db import *
+
 
 ROOT = Path().resolve().parent
 DATA_DIR = ROOT / 'Data'
@@ -147,3 +150,7 @@ class Drivers(Resource):
 
 api.add_resource(Report, '/api/v1/report/')
 api.add_resource(Drivers, '/api/v1/report/drivers')
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
