@@ -7,7 +7,7 @@ from datetime import datetime
 ROOT = Path().resolve().parent
 DATA = ROOT / 'Data'
 
-db = SqliteDatabase('report.db')
+db = SqliteDatabase(DATA / 'report.db')
 
 
 class Driver(Model):
