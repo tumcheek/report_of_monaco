@@ -1,7 +1,5 @@
 from flask import Flask, request, render_template, Response
 from flask_restful import Resource, Api
-import report_package.report
-from report_package import *
 from pathlib import Path
 from flasgger import Swagger
 from dicttoxml import dicttoxml
@@ -142,6 +140,3 @@ class Drivers(Resource):
 api.add_resource(Report, '/api/v1/report/')
 api.add_resource(Drivers, '/api/v1/report/drivers')
 
-
-if __name__ == '__main__':
-    app.run(debug=True)
