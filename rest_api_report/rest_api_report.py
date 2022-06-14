@@ -6,8 +6,7 @@ from pathlib import Path
 from flasgger import Swagger
 from dicttoxml import dicttoxml
 import json
-from peewee import *
-from db import *
+from db import Driver
 
 
 ROOT = Path().resolve().parent
@@ -18,59 +17,52 @@ api = Api(app)
 swagger = Swagger(app)
 
 
-def create_report_dict(report):
-    report_list = list(map(lambda item: item.split('|'), report.split('\n')))
+def create_report_dict(table, attribute=None):
     report_dict = {}
-    for item in report_list:
-        if '' in item:
-            continue
-        if '-' in item[0]:
-            continue
-        name = item[0].split('. ')[1]
-        number = item[0].split('. ')[0]
-        report_dict[number] = {'number': number,
-                               'name': name.strip(),
-                               'car': item[1].strip(),
-                               'time': item[2].strip()}
+    if attribute:
+        data = table.select().where(table.abbreviation == attribute)
+        for driver in data:
+            report_dict[driver.abbreviation] = {'name': driver.full_name,
+                                                'car': driver.car,
+                                                'time': driver.delta_time}
+    else:
+        data = table.select().order_by(Driver.delta_time)
+        for number, driver in enumerate(data):
+            number = str(number+1)
+            report_dict[number] = {'number': number,
+                                   'name': driver.full_name,
+                                   'car': driver.car,
+                                   'time': driver.delta_time}
     return report_dict
 
 
-def create_drivers_dict(data):
+def create_drivers_dict(table):
     data_dict = {}
-    for driver_info in data:
-        data_dict[driver_info[0]] = {
-                'abbreviation': driver_info[0],
-                'name': driver_info[1],
-                'car': driver_info[2]
-            }
+    data = table.select().order_by(Driver.delta_time)
+    for driver in data:
+        data_dict[driver.abbreviation] = {'abbreviation': driver.abbreviation,
+                                          'name': driver.full_name,
+                                          'car': driver.car}
     return data_dict
-
-
-def make_driver_statistic(driver_abr, drivers_report):
-    report = print_report(build_report(DATA_DIR), DATA_DIR).split('\n')
-    for driver_info in drivers_report:
-        if driver_abr in driver_info:
-            for statistic_driver in report:
-                if driver_info[1] in statistic_driver:
-                    return statistic_driver
 
 
 @app.route('/report')
 def show_report():
     order = request.args.get('order')
-    report = reversed(print_report(build_report(DATA_DIR), DATA_DIR).split('\n')) if order == 'desc' \
-        else print_report(build_report(DATA_DIR), DATA_DIR).split('\n')
-    return render_template('index.html', report=report)
+    report = Driver.select().order_by(Driver.delta_time.desc()) if order == 'desc' \
+        else Driver.select().order_by(Driver.delta_time)
+    return render_template('index.html', report=enumerate(report))
 
 
 @app.route('/report/drivers/')
 def show_drivers():
     driver_abr = request.args.get('driver_id')
     order = request.args.get('order')
-    drivers_list = reversed(read_data(DATA_DIR, report_package.report.ABBREVIATIONS)) if order == 'desc' \
-        else read_data(DATA_DIR, report_package.report.ABBREVIATIONS)
+    drivers_list = Driver.select().order_by(Driver.full_name.desc()) if order == 'desc' \
+        else Driver.select().order_by(Driver.full_name)
     if driver_abr:
-        return make_driver_statistic(driver_abr, drivers_list)
+        driver = Driver.select().where(Driver.abbreviation == driver_abr).get()
+        return f'{driver.full_name} | {driver.car} | {driver.delta_time}'
     return render_template('drivers.html', drivers_report=drivers_list)
 
 
@@ -96,7 +88,7 @@ class Report(Resource):
                   default: json
         """
         format = request.args.get('format')
-        report_dict = create_report_dict(print_report(build_report(DATA_DIR), DATA_DIR))
+        report_dict = create_report_dict(Driver)
         if format == 'json':
             return Response(json.dumps(report_dict), mimetype='application/json')
         elif format == 'xml':
@@ -134,10 +126,9 @@ class Drivers(Resource):
         """
         driver_abr = request.args.get('driver_id')
         format = request.args.get('format')
-        drivers_dict = create_drivers_dict(read_data(DATA_DIR, report_package.report.ABBREVIATIONS))
+        drivers_dict = create_drivers_dict(Driver)
         if driver_abr:
-            driver_data = make_driver_statistic(driver_abr, read_data(DATA_DIR, report_package.report.ABBREVIATIONS))
-            report_dict = create_report_dict(driver_data)
+            report_dict = create_report_dict(Driver, driver_abr)
             if format == 'json':
                 return Response(json.dumps(report_dict), mimetype='application/json')
             elif format == 'xml':

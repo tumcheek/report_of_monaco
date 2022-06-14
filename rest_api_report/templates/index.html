@@ -1,7 +1,11 @@
 {% extends "layout.html" %}
 {% block title %}Report{% endblock %}
 {% block content %}
-    {% for line_report in report %}
-    <p>{{ line_report }}</p>
+    {% for index, line_report in report %}
+        {% if index == 15 %}
+        <p>----------------------------------------------------------------------</p>
+        {%endif%}
+        <p>{{ index + 1 }}. {{line_report.full_name}} | {{line_report.car}} | {{line_report.delta_time}}</p>
+
     {% endfor %}
 {% endblock %}
