@@ -15,7 +15,7 @@ api = Api(app)
 swagger = Swagger(app)
 
 
-def create_report_dict(query, attribute=None):
+def create_report_dict(query, attribute=False):
     report_dict = {}
     if attribute:
         for driver in query:
