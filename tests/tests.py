@@ -1,12 +1,58 @@
 from rest_api_report import app, create_report_dict, create_drivers_dict
 from flask import request
 from pathlib import Path
-from unittest.mock import patch
-
+from peewee import *
+from pytest import fixture
 ROOT = Path().resolve().parent
 DATA_DIR = ROOT / 'Data'
 
 client = app.test_client()
+db = SqliteDatabase(DATA_DIR / 'test.db')
+
+
+@fixture()
+def bd_query():
+    class Driver(Model):
+        abbreviation = CharField()
+        full_name = CharField()
+        car = CharField()
+        date = DateField()
+        start_time = DateTimeField()
+        end_time = DateTimeField()
+        delta_time = DateTimeField()
+
+        class Meta:
+            database = db
+
+    return Driver.select().order_by(Driver.delta_time)
+
+
+def test_create_report_dict(bd_query):
+    result = {'1': {'car': 'SAUBER FERRARI',
+                    'name': 'Charles Leclerc',
+                    'number': '1',
+                    'time': '01:12.829'},
+              '2': {'car': 'RENAULT',
+                    'name': 'Carlos Sainz',
+                    'number': '2',
+                    'time': '01:12.950'},
+              '3': {'car': 'SCUDERIA TORO ROSSO HONDA',
+                    'name': 'Brendon Hartley',
+                    'number': '3',
+                    'time': '01:13.179'}}
+
+    assert create_report_dict(bd_query) == result
+
+
+def test_create_driver_dict(bd_query):
+    result = {'BHS': {'abbreviation': 'BHS',
+                      'car': 'SCUDERIA TORO ROSSO HONDA',
+                      'name': 'Brendon Hartley'},
+              'CLS': {'abbreviation': 'CLS',
+                      'car': 'SAUBER FERRARI',
+                      'name': 'Charles Leclerc'},
+              'CSR': {'abbreviation': 'CSR', 'car': 'RENAULT', 'name': 'Carlos Sainz'}}
+    assert create_drivers_dict(bd_query) == result
 
 
 def test_non_existent_index():
@@ -34,18 +80,6 @@ def test_driver_statistic():
     with client as c:
         response = c.get('/report/drivers/?driver_id=AAA')
         assert request.args['driver_id'] == 'AAA'
-
-
-def test_create_report_dict():
-    report = '1. Daniel Ricciardo | RED BULL RACING TAG HEUER | 1:12.013'
-    convert_result = {'1': {'number':'1', 'name': 'Daniel Ricciardo', 'car': 'RED BULL RACING TAG HEUER', 'time': '1:12.013'}}
-    assert create_report_dict(report) == convert_result
-
-
-def test_convert_drivers_to_json():
-    driver = [('BHS', 'Brendon Hartley', 'SCUDERIA TORO ROSSO HONDA')]
-    result = {'BHS': {'abbreviation': 'BHS', 'car': 'SCUDERIA TORO ROSSO HONDA', 'name': 'Brendon Hartley'}}
-    assert create_drivers_dict(driver) == result
 
 
 def test_report_api():

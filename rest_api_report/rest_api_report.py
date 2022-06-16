@@ -15,17 +15,15 @@ api = Api(app)
 swagger = Swagger(app)
 
 
-def create_report_dict(table, attribute=None):
+def create_report_dict(query, attribute=None):
     report_dict = {}
     if attribute:
-        data = table.select().where(table.abbreviation == attribute)
-        for driver in data:
+        for driver in query:
             report_dict[driver.abbreviation] = {'name': driver.full_name,
                                                 'car': driver.car,
                                                 'time': driver.delta_time}
     else:
-        data = table.select().order_by(Driver.delta_time)
-        for number, driver in enumerate(data):
+        for number, driver in enumerate(query):
             number = str(number+1)
             report_dict[number] = {'number': number,
                                    'name': driver.full_name,
@@ -34,10 +32,9 @@ def create_report_dict(table, attribute=None):
     return report_dict
 
 
-def create_drivers_dict(table):
+def create_drivers_dict(query):
     data_dict = {}
-    data = table.select().order_by(Driver.delta_time)
-    for driver in data:
+    for driver in query:
         data_dict[driver.abbreviation] = {'abbreviation': driver.abbreviation,
                                           'name': driver.full_name,
                                           'car': driver.car}
@@ -86,7 +83,8 @@ class Report(Resource):
                   default: json
         """
         format = request.args.get('format')
-        report_dict = create_report_dict(Driver)
+        query = Driver.select().order_by(Driver.delta_time)
+        report_dict = create_report_dict(query)
         if format == 'json':
             return Response(json.dumps(report_dict), mimetype='application/json')
         elif format == 'xml':
@@ -124,9 +122,11 @@ class Drivers(Resource):
         """
         driver_abr = request.args.get('driver_id')
         format = request.args.get('format')
-        drivers_dict = create_drivers_dict(Driver)
+        query = Driver.select().order_by(Driver.delta_time)
+        drivers_dict = create_drivers_dict(query)
         if driver_abr:
-            report_dict = create_report_dict(Driver, driver_abr)
+            query = Driver.select().where(Driver.abbreviation == driver_abr)
+            report_dict = create_report_dict(query, True)
             if format == 'json':
                 return Response(json.dumps(report_dict), mimetype='application/json')
             elif format == 'xml':
@@ -140,3 +140,6 @@ class Drivers(Resource):
 api.add_resource(Report, '/api/v1/report/')
 api.add_resource(Drivers, '/api/v1/report/drivers')
 
+
+if __name__ == '__main__':
+    app.run(debug=True)

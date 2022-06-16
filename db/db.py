@@ -21,6 +21,7 @@ class Driver(Model):
 
     class Meta:
         database = db
+        db_table = 'drivers'
 
 
 def create_table_drivers(start_info, end_info, abbreviations):
@@ -31,10 +32,10 @@ def create_table_drivers(start_info, end_info, abbreviations):
                       start_time=start[1], end_time=end[1], delta_time=delta_time)
 
 
-# if __name__ == '__main__':
-#     with db:
-#         db.create_tables([Driver])
-#         create_table_drivers(read_data(DATA, 'start.log'), read_data(DATA, 'end.log'), read_data(DATA, 'abbreviations.txt'))
+if __name__ == '__main__':
+    with db:
+        db.create_tables([Driver])
+        create_table_drivers(read_data(DATA, 'start.log'), read_data(DATA, 'end.log'), read_data(DATA, 'abbreviations.txt'))
 
 
 
