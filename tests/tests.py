@@ -3,6 +3,7 @@ from flask import request
 from pathlib import Path
 from peewee import *
 from pytest import fixture
+
 ROOT = Path().resolve().parent
 DATA_DIR = ROOT / 'Data'
 
