@@ -2,6 +2,6 @@
 {% block title %}Drivers{% endblock %}
 {% block content %}
 {% for line_report in drivers_report %}
-    <p>{{line_report.full_name}} | <a href=?driver_id={{line_report.abbreviation}}>{{ line_report.abbreviation }}</a></p>
+    <p>{{line_report.full_name}} | <a href="{{url_for('drivers', driver_id={{line_report.abbreviation}})}}">{{ line_report.abbreviation }}</a></p>
 {% endfor %}
 {% endblock %}
