@@ -4,7 +4,7 @@ from pathlib import Path
 from flasgger import Swagger
 from dicttoxml import dicttoxml
 import json
-from db import Driver
+from db import Driver, Time
 
 
 ROOT = Path().resolve().parent
@@ -19,15 +19,15 @@ def create_report_dict(query, attribute=False):
     report_dict = {}
     if attribute:
         for driver in query:
-            report_dict[driver.abbreviation] = {'name': driver.full_name,
-                                                'car': driver.car,
-                                                'time': driver.delta_time}
+            report_dict[driver.driver_id.abbreviation] = {'name': driver.driver_id.full_name,
+                                                          'car': driver.driver_id.car,
+                                                          'time': driver.delta_time}
     else:
         for number, driver in enumerate(query):
             number = str(number+1)
             report_dict[number] = {'number': number,
-                                   'name': driver.full_name,
-                                   'car': driver.car,
+                                   'name': driver.driver_id.full_name,
+                                   'car': driver.driver_id.car,
                                    'time': driver.delta_time}
     return report_dict
 
@@ -35,17 +35,17 @@ def create_report_dict(query, attribute=False):
 def create_drivers_dict(query):
     data_dict = {}
     for driver in query:
-        data_dict[driver.abbreviation] = {'abbreviation': driver.abbreviation,
-                                          'name': driver.full_name,
-                                          'car': driver.car}
+        data_dict[driver.driver_id.abbreviation] = {'abbreviation': driver.driver_id.abbreviation,
+                                                    'name': driver.driver_id.full_name,
+                                                    'car': driver.driver_id.car}
     return data_dict
 
 
 @app.route('/report')
 def show_report():
     order = request.args.get('order')
-    report = Driver.select().order_by(Driver.delta_time.desc()) if order == 'desc' \
-        else Driver.select().order_by(Driver.delta_time)
+    report = Time.select(Time, Driver).join(Driver).order_by(Time.delta_time.desc()) if order == 'desc' \
+        else Time.select(Time, Driver).join(Driver).order_by(Time.delta_time)
     return render_template('index.html', report=enumerate(report))
 
 
@@ -56,8 +56,8 @@ def show_drivers():
     drivers_list = Driver.select().order_by(Driver.full_name.desc()) if order == 'desc' \
         else Driver.select().order_by(Driver.full_name)
     if driver_abr:
-        driver = Driver.select().where(Driver.abbreviation == driver_abr).get()
-        return f'{driver.full_name} | {driver.car} | {driver.delta_time}'
+        driver = Time.select(Time, Driver).join(Driver).where(Driver.abbreviation == driver_abr).get()
+        return f'{driver.driver_id.full_name} | {driver.driver_id.car} | {driver.delta_time}'
     return render_template('drivers.html', drivers_report=drivers_list)
 
 
@@ -83,7 +83,7 @@ class Report(Resource):
                   default: json
         """
         format = request.args.get('format')
-        query = Driver.select().order_by(Driver.delta_time)
+        query = Time.select(Time, Driver).join(Driver).order_by(Time.delta_time)
         report_dict = create_report_dict(query)
         if format == 'json':
             return Response(json.dumps(report_dict), mimetype='application/json')
@@ -122,10 +122,10 @@ class Drivers(Resource):
         """
         driver_abr = request.args.get('driver_id')
         format = request.args.get('format')
-        query = Driver.select().order_by(Driver.delta_time)
+        query = Time.select(Time, Driver).join(Driver).order_by(Time.delta_time)
         drivers_dict = create_drivers_dict(query)
         if driver_abr:
-            query = Driver.select().where(Driver.abbreviation == driver_abr)
+            query = Time.select(Time, Driver).join(Driver).where(Driver.abbreviation == driver_abr)
             report_dict = create_report_dict(query, True)
             if format == 'json':
                 return Response(json.dumps(report_dict), mimetype='application/json')

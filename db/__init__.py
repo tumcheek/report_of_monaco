@@ -1,1 +1,2 @@
-from .db import *
+from .create_tables import *
+from .models import *

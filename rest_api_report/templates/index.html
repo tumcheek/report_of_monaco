@@ -5,7 +5,7 @@
         {% if index == 15 %}
         <p>----------------------------------------------------------------------</p>
         {%endif%}
-        <p>{{ index + 1 }}. {{line_report.full_name}} | {{line_report.car}} | {{line_report.delta_time}}</p>
+        <p>{{ index + 1 }}. {{line_report.driver_id.full_name}} | {{line_report.driver_id.car}} | {{line_report.delta_time}}</p>
 
     {% endfor %}
 {% endblock %}

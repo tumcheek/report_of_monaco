@@ -17,6 +17,13 @@ def bd_query():
         abbreviation = CharField()
         full_name = CharField()
         car = CharField()
+
+        class Meta:
+            database = db
+            db_table = 'drivers'
+
+    class Time(Model):
+        driver_id = ForeignKeyField(Driver)
         date = DateField()
         start_time = DateTimeField()
         end_time = DateTimeField()
@@ -25,7 +32,7 @@ def bd_query():
         class Meta:
             database = db
 
-    return Driver.select().order_by(Driver.delta_time)
+    return Time.select(Time, Driver).join(Driver).order_by(Time.delta_time)
 
 
 def test_create_report_dict(bd_query):
