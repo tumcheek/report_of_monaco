@@ -8,7 +8,7 @@ ROOT = Path().resolve().parent
 DATA_DIR = ROOT / 'Data'
 
 client = app.test_client()
-db = SqliteDatabase(DATA_DIR / 'test.db')
+db = SqliteDatabase(DATA_DIR / 'test.database')
 
 
 @fixture()

@@ -4,7 +4,7 @@ from pathlib import Path
 
 ROOT = Path().resolve().parent
 DATA = ROOT / 'Data'
-REPORT_DB = 'report.db'
+REPORT_DB = 'report.database'
 
 db = SqliteDatabase(DATA / REPORT_DB)
 

@@ -4,7 +4,7 @@ from pathlib import Path
 from flasgger import Swagger
 from dicttoxml import dicttoxml
 import json
-from db import Driver, Time
+from database import Driver, Time
 
 
 ROOT = Path().resolve().parent
