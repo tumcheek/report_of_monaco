@@ -4,14 +4,12 @@ from pathlib import Path
 
 ROOT = Path().resolve().parent
 DATA = ROOT / 'Data'
-REPORT_DB = 'report.database'
+REPORT_DB = 'report.db'
 
 db = SqliteDatabase(DATA / REPORT_DB)
 
 
 class BaseModel(Model):
-    id = PrimaryKeyField(unique=True)
-
     class Meta:
         database = db
 
@@ -26,7 +24,7 @@ class Driver(BaseModel):
 
 
 class Time(BaseModel):
-    driver_id = ForeignKeyField(Driver)
+    driver_id = ForeignKeyField(Driver, on_delete='CASCADE')
     date = DateField()
     start_time = DateTimeField()
     end_time = DateTimeField()
